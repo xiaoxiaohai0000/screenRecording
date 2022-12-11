@@ -13,31 +13,44 @@
     <button id="btn_stop">停止录制</button>
     <script>
         let recoder;
+        // 监听开始录制按钮
         document.getElementById("btn_start").addEventListener("click", async () => {
+            // 获取视频流和麦克风音频流
             let videoStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             let audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // 合并视频轨和音频轨，实例化成媒体流
             let tracks = [];
             videoStream.getVideoTracks().forEach(t => tracks.push(t));
             audioStream.getAudioTracks().forEach(t => tracks.push(t));
             let stream = new MediaStream(tracks);
+            // 录制媒体流
             recoder = new MediaRecorder(stream);
+            // 存入媒体流
             let data = [];
             recoder.ondataavailable = function (e) {
                 data.push(e.data);
             }
+            // 停止录制的执行事件
             recoder.onstop = function () {
+                // 关闭录制窗口
                 this.stream.getTracks().forEach(track => track.stop());
+                // 视频数据转换成Blob对象
                 let blob = new Blob(data, { type: this.mimeType });
+                // 创建链接并模拟点击下载
                 let link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
                 link.downloaded = new Date().getTime() + ".webm";
                 document.body.appendChild(link);
                 link.click();
+                // 释放占用内存资源
                 URL.revokeObjectURL(link.href);
                 link.remove();
             }
+            // 开始录制
             recoder.start();
         })
+
+        // 监听停止录制按钮
         document.getElementById("btn_stop").addEventListener("click", function () {
             recoder.stop();
         })
